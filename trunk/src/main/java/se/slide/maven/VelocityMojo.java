@@ -1,28 +1,51 @@
 package se.slide.maven;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 
+import org.apache.maven.model.FileSet;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
-import org.apache.velocity.exception.MethodInvocationException;
-import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
+import org.apache.velocity.exception.VelocityException;
+import org.codehaus.plexus.util.FileUtils;
 
 /**
- * 
+ *
  * @author www.slide.se
  * @goal velocity
  */
 public class VelocityMojo extends AbstractMojo {
+
+	/**
+	 * The maven project.
+	 *
+	 * @parameter expression="${project}"
+	 * @readonly
+	 */
+	private MavenProject project;
+
+	/**
+	 * The character encoding scheme to be applied when filtering resources.
+	 *
+	 * @parameter expression="${encoding}"
+	 *            default-value="${project.build.sourceEncoding}"
+	 */
+	private String encoding;
+
 	/**
 	 * Location of the file.
-	 * 
+	 *
 	 * @parameter expression="${project.build.directory}"
 	 * @required
 	 */
@@ -31,14 +54,14 @@ public class VelocityMojo extends AbstractMojo {
 	/**
 	 * Template file TODO Make this a fileset so that a collection of files
 	 * could be processed
-	 * 
+	 *
 	 * @parameter
 	 */
-	private File templateFile;
+	private FileSet templateFiles;
 
 	/**
 	 * Template values
-	 * 
+	 *
 	 * @parameter
 	 */
 	private Properties templateValues;
@@ -49,37 +72,106 @@ public class VelocityMojo extends AbstractMojo {
 			Velocity.init();
 			VelocityContext context = new VelocityContext();
 
-			Enumeration e = templateValues.propertyNames();
+			addPropertiesToContext(context, templateValues);
+			context.put("project", project);
 
-			while (e.hasMoreElements()) {
-				String key = (String)e.nextElement();
-				String value = templateValues.getProperty(key);
+			List fileNames = expandFileSet();
+			if (fileNames == null) {
+				getLog().warn("Emtpy fileset");
+			} else {
+				getLog().debug("Translating files");
+				Iterator i = fileNames.iterator();
+				while (i.hasNext()) {
+					String file = (String) i.next();
+					getLog().debug(file);
+					translateFile(templateFiles.getDirectory(), file, context);
+				}
+			}
+		} catch (ResourceNotFoundException e) {
+			throw new MojoExecutionException("Reasorce not found", e);
+		} catch (VelocityException e) {
+			getLog().info(e.getMessage());
+		} catch (MojoExecutionException e) {
+			throw e;
+		} catch (IOException e) {
+			throw new MojoExecutionException("Failed to save result", e);
+		} catch (Exception e) {
+			getLog().error(e);
+			throw new MojoExecutionException("Unexpected", e);
+		} finally {
+		}
+	}
+
+	private void addPropertiesToContext(VelocityContext context, Properties prop) {
+		getLog().debug("Exporting properties to context: " + prop);
+		Enumeration propEnumeration;
+		if (prop != null) {
+			propEnumeration = prop.propertyNames();
+			while (propEnumeration.hasMoreElements()) {
+				String key = (String) propEnumeration.nextElement();
+				String value = prop.getProperty(key);
+				getLog().debug(key + "=" + value);
 				context.put(key, value);
 			}
+		}
+	}
 
-			//context.put("name", new String("Velocity"));
+	private List expandFileSet() throws IOException {
+		File baseDir = new File(templateFiles.getDirectory());
+		getLog().debug(baseDir.getAbsolutePath());
+		String includes = list2CvsString(templateFiles.getIncludes());
+		getLog().debug("includes: " + includes);
+		String excludes = list2CvsString(templateFiles.getExcludes());
+		getLog().debug("excludes: " + excludes);
+		return FileUtils.getFileNames(baseDir, includes, excludes, false);
+	}
 
-			Template template = null;
+	private String list2CvsString(List patterns) {
+		String delim = "";
+		StringBuffer buf = new StringBuffer();
+		if (patterns != null) {
+			Iterator i = patterns.iterator();
+			while (i.hasNext()) {
+				buf.append(delim).append(i.next());
+				delim = ", ";
+			}
+		}
+		return buf.toString();
+	}
 
-			//template = Velocity.getTemplate("mytemplate.vm");
-			String absPath = templateFile.getAbsolutePath();
-			String path = templateFile.getPath();
-			template = Velocity.getTemplate("infra.txt");
-			StringWriter sw = new StringWriter();
-			template.merge(context, sw);
+	private void translateFile(String basedir, String templateFile,
+	        VelocityContext context) throws ResourceNotFoundException,
+	        VelocityException, MojoExecutionException, IOException
 
-			getLog().info(sw.toString());
-		} catch (ResourceNotFoundException rnfe) {
-			getLog().error(rnfe.getMessage());
-			// couldn't find the template
-		} catch (ParseErrorException pee) {
-			// syntax error: problem parsing the template
-		} catch (MethodInvocationException mie) {
-			// something invoked in the template
-			// threw an exception
+	{
+		Template template = null;
+
+		String inputFile = basedir + File.separator + templateFile;
+		getLog().debug("inputFile: " + inputFile);
+		try {
+			template = Velocity.getTemplate(inputFile);
 		} catch (Exception e) {
+			getLog().info("Failed to load: " + inputFile);
+		}
+		StringWriter sw = new StringWriter();
+		try {
+			template.merge(context, sw);
+		} catch (Exception e) {
+			getLog().info("Failed to merge: " + inputFile + ":" + e.getMessage());
 
 		}
 
+		File result = new File(outputDirectory.getAbsoluteFile()
+		        + File.separator + templateFile);
+		File dir = result.getParentFile();
+		if (!dir.exists()) {
+			if (!dir.mkdirs()) {
+				throw new MojoExecutionException("Failed to create outputDirectory");
+			}
+		}
+
+		FileOutputStream os = new FileOutputStream(result);
+		os.write(sw.toString().getBytes(encoding));
 	}
+
 }
