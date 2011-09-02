@@ -52,10 +52,11 @@ public class VelocityMojo extends AbstractMojo {
 	private File outputDirectory;
 
 	/**
-	 * Template file TODO Make this a fileset so that a collection of files
+	 * Template file
 	 * could be processed
 	 *
 	 * @parameter
+	 * @required
 	 */
 	private FileSet templateFiles;
 
@@ -69,6 +70,14 @@ public class VelocityMojo extends AbstractMojo {
 	public void execute() throws MojoExecutionException {
 		getLog().info("velocity....");
 		try {
+			/**
+			 * Validate fileset. Current version of velocity does not handle absulute paths.
+			 * @see #org.apache.velocity.runtime.resource.loader.FileResourceLoader#getResourceStream(String)
+			 */
+			File dir = new File(templateFiles.getDirectory());
+			if (dir.isAbsolute()) {
+				throw new MojoExecutionException("Directory in templateFiles must be relative.");
+			}
 			Velocity.init();
 			VelocityContext context = new VelocityContext();
 
@@ -88,7 +97,7 @@ public class VelocityMojo extends AbstractMojo {
 				}
 			}
 		} catch (ResourceNotFoundException e) {
-			throw new MojoExecutionException("Reasorce not found", e);
+			throw new MojoExecutionException("Reasource not found", e);
 		} catch (VelocityException e) {
 			getLog().info(e.getMessage());
 		} catch (MojoExecutionException e) {
@@ -147,17 +156,18 @@ public class VelocityMojo extends AbstractMojo {
 		Template template = null;
 
 		String inputFile = basedir + File.separator + templateFile;
-		getLog().debug("inputFile: " + inputFile);
 		try {
 			template = Velocity.getTemplate(inputFile);
 		} catch (Exception e) {
 			getLog().info("Failed to load: " + inputFile);
+			throw new MojoExecutionException("Get template failed: " + inputFile, e);
 		}
 		StringWriter sw = new StringWriter();
 		try {
 			template.merge(context, sw);
 		} catch (Exception e) {
 			getLog().info("Failed to merge: " + inputFile + ":" + e.getMessage());
+			throw new MojoExecutionException("Failto merge template: " + inputFile, e);
 
 		}
 
@@ -173,5 +183,25 @@ public class VelocityMojo extends AbstractMojo {
 		FileOutputStream os = new FileOutputStream(result);
 		os.write(sw.toString().getBytes(encoding));
 	}
+
+	void setProject(MavenProject project) {
+    	this.project = project;
+    }
+
+	void setEncoding(String encoding) {
+    	this.encoding = encoding;
+    }
+
+	void setOutputDirectory(File outputDirectory) {
+    	this.outputDirectory = outputDirectory;
+    }
+
+	void setTemplateFiles(FileSet templateFiles) {
+    	this.templateFiles = templateFiles;
+    }
+
+	void setTemplateValues(Properties templateValues) {
+    	this.templateValues = templateValues;
+    }
 
 }
