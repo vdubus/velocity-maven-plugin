@@ -69,6 +69,14 @@ public class VelocityMojo extends AbstractMojo implements LogChute {
 	 * @parameter
 	 */
 	private Properties templateValues;
+	
+	/**
+	 * Set this parameter if you want the plugin to remove an unwanted extension when saving result.
+	 * For example foo.xml.vtl ==> foo.xml if removeExtension = '.vtl'. Null and empty means no substition.
+	 * 
+	 * @parameter
+	 */
+	private String removeExtension;
 
 	private String relPath;
 
@@ -199,6 +207,14 @@ public class VelocityMojo extends AbstractMojo implements LogChute {
 
 		}
 
+		if (removeExtension != null && !removeExtension.trim().equals("") && templateFile.endsWith(removeExtension)) {
+			String tmp = templateFile.substring(0, templateFile.length() - removeExtension.length());
+			
+			if (tmp.endsWith("/")) {
+				getLog().warn("removePrefix equals filename will not remove it. " + templateFile);
+			} else
+				templateFile = tmp;
+		}
 		File result = new File(outputDirectory.getAbsoluteFile()
 		        + File.separator + templateFile);
 		File dir = result.getParentFile();
