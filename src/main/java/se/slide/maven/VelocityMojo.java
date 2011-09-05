@@ -67,6 +67,8 @@ public class VelocityMojo extends AbstractMojo {
 	 */
 	private Properties templateValues;
 
+	private String relPath;
+
 	public void execute() throws MojoExecutionException {
 		getLog().info("velocity....");
 		try {
@@ -93,7 +95,8 @@ public class VelocityMojo extends AbstractMojo {
 				while (i.hasNext()) {
 					String file = (String) i.next();
 					getLog().debug(file);
-					translateFile(templateFiles.getDirectory(), file, context);
+					translateFile(relPath + File.separator + templateFiles.getDirectory(), 
+							file, context);
 				}
 			}
 		} catch (ResourceNotFoundException e) {
@@ -126,13 +129,33 @@ public class VelocityMojo extends AbstractMojo {
 	}
 
 	private List expandFileSet() throws IOException {
-		File baseDir = new File(templateFiles.getDirectory());
+		File baseDir = new File(getProjectRelativeDirectory() + File.separator + templateFiles.getDirectory());
 		getLog().debug(baseDir.getAbsolutePath());
 		String includes = list2CvsString(templateFiles.getIncludes());
 		getLog().debug("includes: " + includes);
 		String excludes = list2CvsString(templateFiles.getExcludes());
 		getLog().debug("excludes: " + excludes);
 		return FileUtils.getFileNames(baseDir, includes, excludes, false);
+	}
+	
+	private String getProjectRelativeDirectory() throws IOException
+	{
+		
+		if (relPath == null) {
+			relPath = ".";
+			File f = new File(".");
+			String pwd = f.getCanonicalPath();
+			String projectDir = project.getBasedir().getCanonicalPath();
+			String subPath = projectDir.substring(pwd.length());
+			if (subPath.length() > 0)
+			{
+				//getCannonicalPath removes last slash, we have a leading slash, remove it
+				relPath = subPath.substring(1);
+			}
+		}
+			
+		return relPath;
+		
 	}
 
 	private String list2CvsString(List patterns) {
