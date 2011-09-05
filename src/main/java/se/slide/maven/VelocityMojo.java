@@ -18,6 +18,9 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.exception.ResourceNotFoundException;
 import org.apache.velocity.exception.VelocityException;
+import org.apache.velocity.runtime.RuntimeServices;
+import org.apache.velocity.runtime.log.LogChute;
+import org.apache.velocity.runtime.log.LogSystem;
 import org.codehaus.plexus.util.FileUtils;
 
 /**
@@ -25,7 +28,7 @@ import org.codehaus.plexus.util.FileUtils;
  * @author www.slide.se
  * @goal velocity
  */
-public class VelocityMojo extends AbstractMojo {
+public class VelocityMojo extends AbstractMojo implements LogChute {
 
 	/**
 	 * The maven project.
@@ -37,14 +40,15 @@ public class VelocityMojo extends AbstractMojo {
 
 	/**
 	 * The character encoding scheme to be applied when filtering resources.
-	 *
+	 * Must not be null.
+	 * 
 	 * @parameter expression="${encoding}"
 	 *            default-value="${project.build.sourceEncoding}"
 	 */
 	private String encoding;
 
 	/**
-	 * Location of the file.
+	 * Location of the file. Defaults to project.build.directory.
 	 *
 	 * @parameter expression="${project.build.directory}"
 	 * @required
@@ -52,8 +56,7 @@ public class VelocityMojo extends AbstractMojo {
 	private File outputDirectory;
 
 	/**
-	 * Template file
-	 * could be processed
+	 * Template files. The files to apply velocity on.
 	 *
 	 * @parameter
 	 * @required
@@ -80,6 +83,8 @@ public class VelocityMojo extends AbstractMojo {
 			if (dir.isAbsolute()) {
 				throw new MojoExecutionException("Directory in templateFiles must be relative.");
 			}
+			Velocity.setProperty(Velocity.RUNTIME_LOG_LOGSYSTEM, this);
+
 			Velocity.init();
 			VelocityContext context = new VelocityContext();
 
@@ -190,7 +195,7 @@ public class VelocityMojo extends AbstractMojo {
 			template.merge(context, sw);
 		} catch (Exception e) {
 			getLog().info("Failed to merge: " + inputFile + ":" + e.getMessage());
-			throw new MojoExecutionException("Failto merge template: " + inputFile, e);
+			throw new MojoExecutionException("Fail to merge template: " + inputFile, e);
 
 		}
 
@@ -227,4 +232,61 @@ public class VelocityMojo extends AbstractMojo {
     	this.templateValues = templateValues;
     }
 
+	//LogChute implementation
+	public void init(RuntimeServices arg0) throws Exception {
+		// Left empty
+	}
+
+	public boolean isLevelEnabled(int arg0) {
+		boolean enabled = false;
+		if (arg0 == DEBUG_ID && getLog().isDebugEnabled())
+			enabled = true;
+		else if (arg0 == INFO_ID && getLog().isInfoEnabled())
+			enabled = true;
+		else if (arg0 == WARN_ID && getLog().isWarnEnabled())
+			enabled = true;
+		else if (arg0 == ERROR_ID && getLog().isErrorEnabled())
+			enabled = true;
+
+		return enabled;
+	}
+	
+
+	public void log(int arg0, String arg1) {
+		if (isLevelEnabled(arg0))
+			switch (arg0) {
+			case DEBUG_ID : 
+				getLog().debug(arg1);
+				break;
+			case INFO_ID :
+				getLog().info(arg1);
+				break;
+			case WARN_ID :
+				getLog().warn(arg1);
+				break;
+			case ERROR_ID :
+				getLog().error(arg1);
+				break;
+			default:
+			}
+	}
+
+	public void log(int arg0, String arg1, Throwable arg2) {
+		if (isLevelEnabled(arg0))
+			switch (arg0) {
+			case DEBUG_ID : 
+				getLog().debug(arg1, arg2);
+				break;
+			case INFO_ID :
+				getLog().info(arg1, arg2);
+				break;
+			case WARN_ID :
+				getLog().warn(arg1, arg2);
+				break;
+			case ERROR_ID :
+				getLog().error(arg1, arg2);
+				break;
+			default:
+			}
+	}
 }
