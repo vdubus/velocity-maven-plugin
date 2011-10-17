@@ -5,7 +5,7 @@ The project has not been released to any artifact repository yet. As such you ha
 The plugin name is `velocity` and there is a single goal `velocity`
 
 = Overview =
-  # Check out a copy of the plugin from [[http://velocity-maven-plugin.googlecode.com/svn/trunk/ subversion].
+  # Check out a copy of the plugin from [http://velocity-maven-plugin.googlecode.com/svn/trunk/ subversion].
   # Run maven install on the plugin.
   # Add the plugin information to your pom (see the next section).
   # You can now run the plugin with 'mvn velocity:velocity'
