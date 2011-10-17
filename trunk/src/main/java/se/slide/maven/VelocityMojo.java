@@ -225,7 +225,7 @@ public class VelocityMojo extends AbstractMojo implements LogChute {
 		}
 
 		FileOutputStream os = new FileOutputStream(result);
-		os.write(sw.toString().getBytes(encoding));
+		os.write(sw.toString().getBytes(encoding == null ? "UTF-8" : encoding));
 	}
 
 	void setProject(MavenProject project) {
