@@ -1,4 +1,4 @@
-package se.slide.maven;
+package com.googlecode;
 
 import java.io.File;
 import java.io.FileOutputStream;
