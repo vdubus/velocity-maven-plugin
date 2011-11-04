@@ -25,9 +25,10 @@
 	</licenses>
 
 	<scm>
-		<url>http://velocity-maven-plugin.googlecode.com/svn/trunk</url>
-		<connection>https://velocity-maven-plugin.googlecode.com/svn/trunk</connection>
-		<tag>https://velocity-maven-plugin.googlecode.com/svn/trunk</tag>
+		<url>http://velocity-maven-plugin.googlecode.com/svn/tags</url>
+		<developerConnection>scm:svn:https://velocity-maven-plugin.googlecode.com/svn/tags</developerConnection>
+		<connection>scm:svn:https://velocity-maven-plugin.googlecode.com/svn/tags</connection>
+		<tag>https://velocity-maven-plugin.googlecode.com/svn/tags</tag>
 	</scm>
 
 	<developers>
