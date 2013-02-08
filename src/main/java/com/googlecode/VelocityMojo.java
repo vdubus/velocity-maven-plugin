@@ -20,7 +20,6 @@ import org.apache.velocity.exception.ResourceNotFoundException;
 import org.apache.velocity.exception.VelocityException;
 import org.apache.velocity.runtime.RuntimeServices;
 import org.apache.velocity.runtime.log.LogChute;
-import org.apache.velocity.runtime.log.LogSystem;
 import org.codehaus.plexus.util.FileUtils;
 
 /**
@@ -225,7 +224,11 @@ public class VelocityMojo extends AbstractMojo implements LogChute {
 		}
 
 		FileOutputStream os = new FileOutputStream(result);
-		os.write(sw.toString().getBytes(encoding == null ? "UTF-8" : encoding));
+		try {
+			os.write(sw.toString().getBytes(encoding == null ? "UTF-8" : encoding));
+		}finally {
+			os.close();
+		}
 	}
 
 	void setProject(MavenProject project) {
