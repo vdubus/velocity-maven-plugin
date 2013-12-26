@@ -18,16 +18,15 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.exception.ResourceNotFoundException;
 import org.apache.velocity.exception.VelocityException;
-import org.apache.velocity.runtime.RuntimeServices;
-import org.apache.velocity.runtime.log.LogChute;
 import org.codehaus.plexus.util.FileUtils;
 
 /**
- *
  * @author www.slide.se
+ * @author javamonkey79 - Shaun Elliott
+ * 
  * @goal velocity
  */
-public class VelocityMojo extends AbstractMojo implements LogChute {
+public class VelocityMojo extends AbstractMojo {
 
 	/**
 	 * The maven project.
@@ -76,21 +75,13 @@ public class VelocityMojo extends AbstractMojo implements LogChute {
 	 * @parameter
 	 */
 	private String removeExtension;
-
-	private String relPath;
-
+	
 	public void execute() throws MojoExecutionException {
+		
 		getLog().info("velocity....");
 		try {
-			/**
-			 * Validate fileset. Current version of velocity does not handle absulute paths.
-			 * @see #org.apache.velocity.runtime.resource.loader.FileResourceLoader#getResourceStream(String)
-			 */
-			File dir = new File(templateFiles.getDirectory());
-			if (dir.isAbsolute()) {
-				throw new MojoExecutionException("Directory in templateFiles must be relative.");
-			}
-			Velocity.setProperty(Velocity.RUNTIME_LOG_LOGSYSTEM, this);
+			Velocity.setProperty(Velocity.RUNTIME_LOG_LOGSYSTEM, new LogHandler(this));
+			Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, project.getBasedir().getAbsolutePath());
 
 			Velocity.init();
 			VelocityContext context = new VelocityContext();
@@ -98,21 +89,20 @@ public class VelocityMojo extends AbstractMojo implements LogChute {
 			addPropertiesToContext(context, templateValues);
 			context.put("project", project);
 
-			List fileNames = expandFileSet();
+			List< ? > fileNames = expandFileSet();
 			if (fileNames == null) {
 				getLog().warn("Emtpy fileset");
 			} else {
 				getLog().debug("Translating files");
-				Iterator i = fileNames.iterator();
+				Iterator< ? > i = fileNames.iterator();
 				while (i.hasNext()) {
-					String file = (String) i.next();
-					getLog().debug(file);
-					translateFile(relPath + File.separator + templateFiles.getDirectory(), 
-							file, context);
+					String templateFile = (String) i.next();
+					getLog().debug( "templateFile -> " + templateFile );
+					translateFile(templateFiles.getDirectory(), templateFile, context);
 				}
 			}
 		} catch (ResourceNotFoundException e) {
-			throw new MojoExecutionException("Reasource not found", e);
+			throw new MojoExecutionException("Resource not found", e);
 		} catch (VelocityException e) {
 			getLog().info(e.getMessage());
 		} catch (MojoExecutionException e) {
@@ -128,7 +118,7 @@ public class VelocityMojo extends AbstractMojo implements LogChute {
 
 	private void addPropertiesToContext(VelocityContext context, Properties prop) {
 		getLog().debug("Exporting properties to context: " + prop);
-		Enumeration propEnumeration;
+		Enumeration< ? > propEnumeration;
 		if (prop != null) {
 			propEnumeration = prop.propertyNames();
 			while (propEnumeration.hasMoreElements()) {
@@ -140,8 +130,8 @@ public class VelocityMojo extends AbstractMojo implements LogChute {
 		}
 	}
 
-	private List expandFileSet() throws IOException {
-		File baseDir = new File(getProjectRelativeDirectory() + File.separator + templateFiles.getDirectory());
+	private List< ? > expandFileSet() throws IOException {
+		File baseDir = new File(project.getBasedir().getAbsolutePath() + File.separator + templateFiles.getDirectory());
 		getLog().debug(baseDir.getAbsolutePath());
 		String includes = list2CvsString(templateFiles.getIncludes());
 		getLog().debug("includes: " + includes);
@@ -149,32 +139,12 @@ public class VelocityMojo extends AbstractMojo implements LogChute {
 		getLog().debug("excludes: " + excludes);
 		return FileUtils.getFileNames(baseDir, includes, excludes, false);
 	}
-	
-	private String getProjectRelativeDirectory() throws IOException
-	{
-		
-		if (relPath == null) {
-			relPath = ".";
-			File f = new File(".");
-			String pwd = f.getCanonicalPath();
-			String projectDir = project.getBasedir().getCanonicalPath();
-			String subPath = projectDir.substring(pwd.length());
-			if (subPath.length() > 0)
-			{
-				//getCannonicalPath removes last slash, we have a leading slash, remove it
-				relPath = subPath.substring(1);
-			}
-		}
-			
-		return relPath;
-		
-	}
 
-	private String list2CvsString(List patterns) {
+	private String list2CvsString(List< ? > patterns) {
 		String delim = "";
 		StringBuffer buf = new StringBuffer();
 		if (patterns != null) {
-			Iterator i = patterns.iterator();
+			Iterator< ? > i = patterns.iterator();
 			while (i.hasNext()) {
 				buf.append(delim).append(i.next());
 				delim = ", ";
@@ -191,6 +161,7 @@ public class VelocityMojo extends AbstractMojo implements LogChute {
 		Template template = null;
 
 		String inputFile = basedir + File.separator + templateFile;
+		getLog().debug( "inputFile -> " + inputFile );
 		try {
 			template = Velocity.getTemplate(inputFile);
 		} catch (Exception e) {
@@ -251,61 +222,4 @@ public class VelocityMojo extends AbstractMojo implements LogChute {
     	this.templateValues = templateValues;
     }
 
-	//LogChute implementation
-	public void init(RuntimeServices arg0) throws Exception {
-		// Left empty
-	}
-
-	public boolean isLevelEnabled(int arg0) {
-		boolean enabled = false;
-		if (arg0 == DEBUG_ID && getLog().isDebugEnabled())
-			enabled = true;
-		else if (arg0 == INFO_ID && getLog().isInfoEnabled())
-			enabled = true;
-		else if (arg0 == WARN_ID && getLog().isWarnEnabled())
-			enabled = true;
-		else if (arg0 == ERROR_ID && getLog().isErrorEnabled())
-			enabled = true;
-
-		return enabled;
-	}
-	
-
-	public void log(int arg0, String arg1) {
-		if (isLevelEnabled(arg0))
-			switch (arg0) {
-			case DEBUG_ID : 
-				getLog().debug(arg1);
-				break;
-			case INFO_ID :
-				getLog().info(arg1);
-				break;
-			case WARN_ID :
-				getLog().warn(arg1);
-				break;
-			case ERROR_ID :
-				getLog().error(arg1);
-				break;
-			default:
-			}
-	}
-
-	public void log(int arg0, String arg1, Throwable arg2) {
-		if (isLevelEnabled(arg0))
-			switch (arg0) {
-			case DEBUG_ID : 
-				getLog().debug(arg1, arg2);
-				break;
-			case INFO_ID :
-				getLog().info(arg1, arg2);
-				break;
-			case WARN_ID :
-				getLog().warn(arg1, arg2);
-				break;
-			case ERROR_ID :
-				getLog().error(arg1, arg2);
-				break;
-			default:
-			}
-	}
 }
