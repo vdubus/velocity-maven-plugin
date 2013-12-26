@@ -25,6 +25,7 @@ import org.codehaus.plexus.util.FileUtils;
  * @author javamonkey79 - Shaun Elliott
  * 
  * @goal velocity
+ * @requiresDependencyResolution
  */
 public class VelocityMojo extends AbstractMojo {
 
@@ -163,7 +164,7 @@ public class VelocityMojo extends AbstractMojo {
 		String inputFile = basedir + File.separator + templateFile;
 		getLog().debug( "inputFile -> " + inputFile );
 		try {
-			template = Velocity.getTemplate(inputFile);
+			template = Velocity.getTemplate(inputFile, encoding == null ? "UTF-8" : encoding);
 		} catch (Exception e) {
 			getLog().info("Failed to load: " + inputFile);
 			throw new MojoExecutionException("Get template failed: " + inputFile, e);
