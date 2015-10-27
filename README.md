@@ -8,8 +8,8 @@ Original code is available on [google code project](https://code.google.com/p/ve
 
 This version fix these issues:
 
-* ResourceManager unable to find resource in multi-module project #7 
-* Update Velocity to version 1.7 #8 
+* [ResourceManager unable to find resource in multi-module project](https://github.com/vdubus/velocity-maven-plugin/issues/8)
+* [Update Velocity to version 1.7](https://github.com/vdubus/velocity-maven-plugin/issues/7)
 
 ## Example Addition to POM
 
