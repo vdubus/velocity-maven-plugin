@@ -1,14 +1,15 @@
 # README
 
-## Some words
-This project is a simple export from original [google code project](https://code.google.com/p/velocity-maven-plugin/) with some fix.
-
-* Fix the "[ResourceManager unable to find resource in multi-module project](https://code.google.com/p/velocity-maven-plugin/issues/detail?id=7)" bug
-* Update to [Velocity 1.7](https://code.google.com/p/velocity-maven-plugin/issues/detail?id=8)
-
 ## Introduction
 
-The plugin name is velocity-maven-plugin and there is a single goal velocity
+The plugin name is velocity-maven-plugin and there is a single goal velocity.
+
+Original code is available on [google code project](https://code.google.com/p/velocity-maven-plugin/).
+
+This version fix these issues:
+
+* ResourceManager unable to find resource in multi-module project #7 
+* Update Velocity to version 1.7 #8 
 
 ## Example Addition to POM
 
