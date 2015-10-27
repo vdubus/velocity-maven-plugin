@@ -15,7 +15,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
+import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.exception.ResourceNotFoundException;
 import org.apache.velocity.exception.VelocityException;
 import org.codehaus.plexus.util.FileUtils;
@@ -77,14 +77,20 @@ public class VelocityMojo extends AbstractMojo {
 	 */
 	private String removeExtension;
 	
+	/**
+	 * Velocity engine instance.
+	 */
+	private VelocityEngine velocity;
+	
 	public void execute() throws MojoExecutionException {
 		
 		getLog().info("velocity....");
 		try {
-			Velocity.setProperty(Velocity.RUNTIME_LOG_LOGSYSTEM, new LogHandler(this));
-			Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, project.getBasedir().getAbsolutePath());
+			velocity = new VelocityEngine();
+			velocity.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM, new LogHandler(this));
+			velocity.setProperty(VelocityEngine.FILE_RESOURCE_LOADER_PATH, project.getBasedir().getAbsolutePath());
 
-			Velocity.init();
+			velocity.init();
 			VelocityContext context = new VelocityContext();
 
 			addPropertiesToContext(context, templateValues);
@@ -164,7 +170,7 @@ public class VelocityMojo extends AbstractMojo {
 		String inputFile = basedir + File.separator + templateFile;
 		getLog().debug( "inputFile -> " + inputFile );
 		try {
-			template = Velocity.getTemplate(inputFile, encoding == null ? "UTF-8" : encoding);
+			template = velocity.getTemplate(inputFile, encoding == null ? "UTF-8" : encoding);
 		} catch (Exception e) {
 			getLog().info("Failed to load: " + inputFile);
 			throw new MojoExecutionException("Get template failed: " + inputFile, e);
