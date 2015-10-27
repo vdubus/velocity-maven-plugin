@@ -23,12 +23,12 @@ import org.codehaus.plexus.util.FileUtils;
 /**
  * @author www.slide.se
  * @author javamonkey79 - Shaun Elliott
- * 
+ * 		
  * @goal velocity
  * @requiresDependencyResolution
  */
 public class VelocityMojo extends AbstractMojo {
-
+	
 	/**
 	 * The maven project.
 	 *
@@ -36,16 +36,14 @@ public class VelocityMojo extends AbstractMojo {
 	 * @readonly
 	 */
 	private MavenProject project;
-
+	
 	/**
-	 * The character encoding scheme to be applied when filtering resources.
-	 * Must not be null.
+	 * The character encoding scheme to be applied when filtering resources. Must not be null.
 	 * 
-	 * @parameter expression="${encoding}"
-	 *            default-value="${project.build.sourceEncoding}"
+	 * @parameter expression="${encoding}" default-value="${project.build.sourceEncoding}"
 	 */
 	private String encoding;
-
+	
 	/**
 	 * Location of the file. Defaults to project.build.directory.
 	 *
@@ -53,7 +51,7 @@ public class VelocityMojo extends AbstractMojo {
 	 * @required
 	 */
 	private File outputDirectory;
-
+	
 	/**
 	 * Template files. The files to apply velocity on.
 	 *
@@ -61,7 +59,7 @@ public class VelocityMojo extends AbstractMojo {
 	 * @required
 	 */
 	private FileSet templateFiles;
-
+	
 	/**
 	 * Template values
 	 *
@@ -70,8 +68,8 @@ public class VelocityMojo extends AbstractMojo {
 	private Properties templateValues;
 	
 	/**
-	 * Set this parameter if you want the plugin to remove an unwanted extension when saving result.
-	 * For example foo.xml.vtl ==> foo.xml if removeExtension = '.vtl'. Null and empty means no substition.
+	 * Set this parameter if you want the plugin to remove an unwanted extension when saving result. For example foo.xml.vtl ==> foo.xml if removeExtension =
+	 * '.vtl'. Null and empty means no substition.
 	 * 
 	 * @parameter
 	 */
@@ -89,22 +87,22 @@ public class VelocityMojo extends AbstractMojo {
 			velocity = new VelocityEngine();
 			velocity.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM, new LogHandler(this));
 			velocity.setProperty(VelocityEngine.FILE_RESOURCE_LOADER_PATH, project.getBasedir().getAbsolutePath());
-
+			
 			velocity.init();
 			VelocityContext context = new VelocityContext();
-
+			
 			addPropertiesToContext(context, templateValues);
 			context.put("project", project);
-
-			List< ? > fileNames = expandFileSet();
+			
+			List<?> fileNames = expandFileSet();
 			if (fileNames == null) {
 				getLog().warn("Emtpy fileset");
 			} else {
 				getLog().debug("Translating files");
-				Iterator< ? > i = fileNames.iterator();
+				Iterator<?> i = fileNames.iterator();
 				while (i.hasNext()) {
 					String templateFile = (String) i.next();
-					getLog().debug( "templateFile -> " + templateFile );
+					getLog().debug("templateFile -> " + templateFile);
 					translateFile(templateFiles.getDirectory(), templateFile, context);
 				}
 			}
@@ -122,10 +120,10 @@ public class VelocityMojo extends AbstractMojo {
 		} finally {
 		}
 	}
-
+	
 	private void addPropertiesToContext(VelocityContext context, Properties prop) {
 		getLog().debug("Exporting properties to context: " + prop);
-		Enumeration< ? > propEnumeration;
+		Enumeration<?> propEnumeration;
 		if (prop != null) {
 			propEnumeration = prop.propertyNames();
 			while (propEnumeration.hasMoreElements()) {
@@ -136,8 +134,8 @@ public class VelocityMojo extends AbstractMojo {
 			}
 		}
 	}
-
-	private List< ? > expandFileSet() throws IOException {
+	
+	private List<?> expandFileSet() throws IOException {
 		File baseDir = new File(project.getBasedir().getAbsolutePath() + File.separator + templateFiles.getDirectory());
 		getLog().debug(baseDir.getAbsolutePath());
 		String includes = list2CvsString(templateFiles.getIncludes());
@@ -146,12 +144,12 @@ public class VelocityMojo extends AbstractMojo {
 		getLog().debug("excludes: " + excludes);
 		return FileUtils.getFileNames(baseDir, includes, excludes, false);
 	}
-
-	private String list2CvsString(List< ? > patterns) {
+	
+	private String list2CvsString(List<?> patterns) {
 		String delim = "";
 		StringBuffer buf = new StringBuffer();
 		if (patterns != null) {
-			Iterator< ? > i = patterns.iterator();
+			Iterator<?> i = patterns.iterator();
 			while (i.hasNext()) {
 				buf.append(delim).append(i.next());
 				delim = ", ";
@@ -159,16 +157,15 @@ public class VelocityMojo extends AbstractMojo {
 		}
 		return buf.toString();
 	}
-
-	private void translateFile(String basedir, String templateFile,
-	        VelocityContext context) throws ResourceNotFoundException,
-	        VelocityException, MojoExecutionException, IOException
-
+	
+	private void translateFile(String basedir, String templateFile, VelocityContext context)
+			throws ResourceNotFoundException, VelocityException, MojoExecutionException, IOException
+			
 	{
 		Template template = null;
-
+		
 		String inputFile = basedir + File.separator + templateFile;
-		getLog().debug( "inputFile -> " + inputFile );
+		getLog().debug("inputFile -> " + inputFile);
 		try {
 			template = velocity.getTemplate(inputFile, encoding == null ? "UTF-8" : encoding);
 		} catch (Exception e) {
@@ -181,9 +178,9 @@ public class VelocityMojo extends AbstractMojo {
 		} catch (Exception e) {
 			getLog().info("Failed to merge: " + inputFile + ":" + e.getMessage());
 			throw new MojoExecutionException("Fail to merge template: " + inputFile, e);
-
+			
 		}
-
+		
 		if (removeExtension != null && !removeExtension.trim().equals("") && templateFile.endsWith(removeExtension)) {
 			String tmp = templateFile.substring(0, templateFile.length() - removeExtension.length());
 			
@@ -192,41 +189,40 @@ public class VelocityMojo extends AbstractMojo {
 			} else
 				templateFile = tmp;
 		}
-		File result = new File(outputDirectory.getAbsoluteFile()
-		        + File.separator + templateFile);
+		File result = new File(outputDirectory.getAbsoluteFile() + File.separator + templateFile);
 		File dir = result.getParentFile();
 		if (!dir.exists()) {
 			if (!dir.mkdirs()) {
 				throw new MojoExecutionException("Failed to create outputDirectory");
 			}
 		}
-
+		
 		FileOutputStream os = new FileOutputStream(result);
 		try {
 			os.write(sw.toString().getBytes(encoding == null ? "UTF-8" : encoding));
-		}finally {
+		} finally {
 			os.close();
 		}
 	}
-
+	
 	void setProject(MavenProject project) {
-    	this.project = project;
-    }
-
+		this.project = project;
+	}
+	
 	void setEncoding(String encoding) {
-    	this.encoding = encoding;
-    }
-
+		this.encoding = encoding;
+	}
+	
 	void setOutputDirectory(File outputDirectory) {
-    	this.outputDirectory = outputDirectory;
-    }
-
+		this.outputDirectory = outputDirectory;
+	}
+	
 	void setTemplateFiles(FileSet templateFiles) {
-    	this.templateFiles = templateFiles;
-    }
-
+		this.templateFiles = templateFiles;
+	}
+	
 	void setTemplateValues(Properties templateValues) {
-    	this.templateValues = templateValues;
-    }
-
+		this.templateValues = templateValues;
+	}
+	
 }
