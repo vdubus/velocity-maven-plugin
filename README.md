@@ -1,6 +1,10 @@
 # README
 
-This project is a simple export from original [google code project](https://code.google.com/p/velocity-maven-plugin/).
+## Some words
+This project is a simple export from original [google code project](https://code.google.com/p/velocity-maven-plugin/) with some fix.
+
+* Fix the "[ResourceManager unable to find resource in multi-module project](https://code.google.com/p/velocity-maven-plugin/issues/detail?id=7)" bug
+* Update to [Velocity 1.7](https://code.google.com/p/velocity-maven-plugin/issues/detail?id=8)
 
 ## Introduction
 
@@ -10,20 +14,30 @@ The plugin name is velocity-maven-plugin and there is a single goal velocity
 
 ```xml
 <plugin>
-        <groupId>com.github.vdubus</groupId>
-        <artifactId>velocity-maven-plugin</artifactId>
-        <version>1.1.2</version>
-        <configuration>
-                <templateFiles>
-                        <directory>/src/main/resources</directory>
-                        <includes>
-                                <include>*.vm</include>
-                        </includes>
-                </templateFiles>
-                <templateValues>
-                        <test>foo</test>
-                </templateValues>
-        </configuration>
+	<groupId>com.github.vdubus</groupId>
+	<artifactId>velocity-maven-plugin</artifactId>
+	<version>1.1.2</version>
+	<executions>
+		<execution>
+			<id>Generate source velocity</id>
+			<phase>generate-sources</phase>
+			<goals>
+				<goal>velocity</goal>
+			</goals>
+			<configuration>
+				<removeExtension>.vm</removeExtension>
+				<templateFiles>
+					<directory>src/main/resources</directory>
+					<includes>
+						<include>**/*.vm</include>
+					</includes>
+				</templateFiles>
+				<templateValues>
+					<test>testValue</test>
+				</templateValues>
+			</configuration>
+		</execution>
+	</executions>
 </plugin>
 ```
 
