@@ -1,0 +1,1 @@
+This Maven plugin enables a project to inject variables to any file using the Apache Velocity engine.
