@@ -8,7 +8,7 @@
 	<groupId>com.github.vdubus</groupId>
 	<artifactId>velocity-maven-plugin</artifactId>
 	<packaging>maven-plugin</packaging>
-	<version>1.1.2</version>
+	<version>1.1.3-SNAPSHOT</version>
 	<name>velocity-maven-plugin Maven Mojo</name>
 	<url>https://github.com/vdubus/velocity-maven-plugin</url>
 	<licenses>
@@ -18,17 +18,23 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-	<developers>
-		<developer>
-			<id>johan.erlands@gmail.com</id>
+	<scm>
+		<connection>scm:git:https://github.com/vdubus/velocity-maven-plugin.git</connection>
+		<developerConnection>scm:git:https://github.com/vdubus/velocity-maven-plugin.git</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/vdubus/velocity-maven-plugin</url>
+	</scm>
+	<contributors>
+		<contributor>
 			<name>Johan Erlands</name>
 			<email>johan.erlands@gmail.com</email>
-		</developer>
-		<developer>
-			<id>javamonkey79@gmail.com</id>
+		</contributor>
+		<contributor>
 			<name>Shaun Elliott</name>
 			<email>javamonkey79@gmail.com</email>
-		</developer>
+		</contributor>
+	</contributors>
+	<developers>
 		<developer>
 			<id>vianney.dubus@gmail.com</id>
 			<name>Vianney DUBUS</name>
@@ -52,4 +58,22 @@
 			<version>1.7</version>
 		</dependency>
 	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.6</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>
