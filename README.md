@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The plugin name is velocity-maven-plugin and there is a single goal velocity.
+The plugin name is velocity-maven-plugin and there is a single goal: `velocity`.
 
 Original code is available on [google code project](https://code.google.com/p/velocity-maven-plugin/).
 
@@ -51,4 +51,3 @@ This version fix these issues:
 | removeExtension | no default                      | Set this parameter if you want the plugin to remove an unwanted extension when saving result. For example foo.xml.vtl ==> foo.xml if removeExtension = '.vtl'. |
 | templateFiles   | Required, no default.           | This is required, but a default may be added later                                                                                                             |
 | templateValues  | Required, no default.           | This is the properties list you wish to have merged with your templates                                                                                        |
-
