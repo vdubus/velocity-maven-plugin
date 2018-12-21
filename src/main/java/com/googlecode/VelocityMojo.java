@@ -68,11 +68,11 @@ public class VelocityMojo extends AbstractMojo {
 	
 	
 	/**
-     * Velocity properties
-     *
-     * @parameter
-     */
-    private Properties velocityProperties;
+	 * Velocity properties
+	 *
+	 * @parameter
+	 */
+	private Properties velocityProperties;
 	
 	/**
 	 * Set this parameter if you want the plugin to remove an unwanted extension when saving result.<br>
@@ -130,18 +130,18 @@ public class VelocityMojo extends AbstractMojo {
 	}
 	
 	private void addPropertiesVelocity(final VelocityEngine velocity, final Properties prop) {
-        getLog().debug("Exporting properties to velocity: " + prop);
-        if (prop == null) {
-            return;
-        }
-        final Enumeration<?> propEnumeration = prop.propertyNames();
-        while (propEnumeration.hasMoreElements()) {
-            final String key = (String) propEnumeration.nextElement();
-            final String value = prop.getProperty(key);
-            getLog().debug(key + "=" + value);
-            velocity.setProperty(key, value);
-        }
-    }
+		getLog().debug("Exporting properties to velocity: " + prop);
+		if (prop == null) {
+			return;
+		}
+		final Enumeration<?> propEnumeration = prop.propertyNames();
+		while (propEnumeration.hasMoreElements()) {
+			final String key = (String) propEnumeration.nextElement();
+			final String value = prop.getProperty(key);
+			getLog().debug(key + "=" + value);
+			velocity.setProperty(key, value);
+		}
+	}
 	
 	private void addPropertiesToContext(final VelocityContext context, final Properties prop) {
 		getLog().debug("Exporting properties to context: " + prop);
