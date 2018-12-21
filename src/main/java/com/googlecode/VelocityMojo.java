@@ -66,6 +66,14 @@ public class VelocityMojo extends AbstractMojo {
 	 */
 	private Properties templateValues;
 	
+	
+	/**
+	 * Velocity properties
+	 *
+	 * @parameter
+	 */
+	private Properties velocityProperties;
+	
 	/**
 	 * Set this parameter if you want the plugin to remove an unwanted extension when saving result.<br>
 	 * For example {@code "foo.xml.vtl"} will become {@code "foo.xml"} if removeExtension = {@code '.vtl'}.<br>
@@ -87,9 +95,10 @@ public class VelocityMojo extends AbstractMojo {
 			velocity = new VelocityEngine();
 			velocity.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM, new LogHandler(this));
 			velocity.setProperty(VelocityEngine.FILE_RESOURCE_LOADER_PATH, project.getBasedir().getAbsolutePath());
-			
+			addPropertiesVelocity(velocity, velocityProperties);
 			velocity.init();
 			VelocityContext context = new VelocityContext();
+			
 			
 			addPropertiesToContext(context, templateValues);
 			context.put("project", project);
@@ -117,6 +126,20 @@ public class VelocityMojo extends AbstractMojo {
 		} catch (Exception e) {
 			getLog().error(e);
 			throw new MojoExecutionException("Unexpected", e);
+		}
+	}
+	
+	private void addPropertiesVelocity(final VelocityEngine velocity, final Properties prop) {
+		getLog().debug("Exporting properties to velocity: " + prop);
+		if (prop == null) {
+			return;
+		}
+		final Enumeration<?> propEnumeration = prop.propertyNames();
+		while (propEnumeration.hasMoreElements()) {
+			final String key = (String) propEnumeration.nextElement();
+			final String value = prop.getProperty(key);
+			getLog().debug(key + "=" + value);
+			velocity.setProperty(key, value);
 		}
 	}
 	
